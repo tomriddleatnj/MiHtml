@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nanjing Menu Experience 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Lato', sans-serif; background-color: #fdfbf7; color: #2d2a26; }
+        h1, h2, h3, h4, .serif-font { font-family: 'Playfair Display', serif; }
+        
+        .menu-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        .menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .selected-card { border-color: #b91c1c; background-color: #fff1f2; }
+        
+        /* Carousel Styling */
+        .card-image-container {
+            width: 100%;
+            height: 200px;
+            background-color: #f3f4f6;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s, background 0.2s;
+            z-index: 10;
+        }
+        .menu-card:hover .carousel-btn { opacity: 1; }
+        .carousel-btn.left { left: 8px; }
+        .carousel-btn.right { right: 8px; }
+        
+        .carousel-dots {
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            z-index: 10;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transition: background 0.2s;
+        }
+        .dot.active { background: white; transform: scale(1.2); }
+
+        .toggle-checkbox:checked { right: 0; border-color: #b91c1c; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #b91c1c; }
+        .panel-transition { transition: transform 0.3s ease-in-out; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-screen flex flex-col lg:flex-row overflow-hidden">
+
+    <!-- ==================================================================================== -->
+    <!--  IMAGE CONFIGURATION (在此处填入图片URL)                                              -->
+    <!-- ==================================================================================== -->
+    <script>
+        // 注意：请将您刚才填好 URL 的 imageConfig 对象直接粘贴覆盖这里
+        // Note: Please paste your updated imageConfig object here
+        const imageConfig = {
+            // --- Explore ---
+            niushou: ["https://res.klook.com/images/fl_lossy.progressive,q_65/c_fill,w_1295,h_864/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/jb5wlm149ia06byb1sf4/%E5%8D%97%E4%BA%AC%E7%89%9B%E9%A6%96%E5%B1%B1+%E5%A4%A7%E5%A0%B1%E6%81%A9%E5%AF%BA%E9%81%BA%E5%9D%80%E4%B8%80%E6%97%A5%E9%81%8A%EF%BC%88A%E7%B7%9A%E6%99%9A%E5%87%BA%E7%99%BC10%E9%BB%9E%E9%9B%86%E5%90%88%EF%BC%86%E8%B4%88%E5%A4%96%E7%A7%A6%E6%B7%AE%E6%B2%B3%E9%81%8A%E8%88%B9%E4%B8%A8B%E7%B7%9A9%E4%BA%BA%E5%B0%8F%E5%9C%98%EF%BC%89.jpg", 
+                "https://res.klook.com/image/upload/activities/d6npmkzmpqosv9z5ewm2.jpg"
+            ],
+            zhanyuan: [
+                "https://oss.seetao.com/upload/image/2020-06-25/5ef3ef028b7ea.jpg",
+				"https://boot-img.xuexi.cn/image/1005/process/e7f5fca3fec64a65b7e156b48ee2bbec.jpg",
+				"https://oss.seetao.com/upload/image/2020-06-25/5ef3ef0fa0eff.JPG"
+            ],
+            yuejianglou: [
+				"https://res.klook.com/image/upload/w_750,h_469,c_fill,q_85/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/h2suojior1jorcmqibfb.jpg",
+				"https://www.ourchinastory.com/images/cover/snapshot/2023/08/square/Ourchinastory-nanjing-yuejianglou_x1.jpg"
+            ],
+            fuzimiao: [
+                "https://image.cdn-eztravel.com.tw/RLW-LKMzsMzFpx9luLiJzgKv2iDHpey_nBGwNXwJQjE/g:ce/aHR0cDovL3ZhY2F0aW9uLmNkbi1lenRyYXZlbC5jb20udHcvaW1nL1ZEUi9DTl83OTU0Mzc3MjguanBn.jpg", 
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIa90IkxrHjs6fqM__0X6Sr5wcT9vsYMtuSg&s" 
+            ],
+            zhongshan: [
+                "https://dimg04.tripcdn.com/images/0M74p12000lpxk6n11231.jpg", 
+                "https://dimg04.tripcdn.com/images/1n90o424x91l0yc8j4677.webp"  
+            ],
+            baoen: [
+                "https://res.klook.com/images/fl_lossy.progressive,q_65/c_fill,w_1295,h_863/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/zwakaoirei5itzd46hbb/%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%A0%B1%E6%81%A9%E5%AF%BA%E9%81%BA%E5%9D%80%E5%85%AC%E5%9C%92%E9%96%80%E7%A5%A8.jpg",
+				"https://upload.wikimedia.org/wikipedia/commons/9/9a/UB_Maastricht_-_Nieuhof_1665_-_Toren.jpg"
+            ],
+            president: [
+                "https://images.unsplash.com/photo-1566835848574-84401a0521d9?q=80&w=800&auto=format&fit=crop" 
+            ],
+            wall: [
+                "https://wenhui.whb.cn/u/cms/www/202005/181334194trp.jpg" 
+            ],
+            xuanwu: [
+                "https://ak-d.tripcdn.com/images/0106k12000f3rodrw2EC1.jpg","https://poi-pic-gz.cdn.bcebos.com/pic_3cad8091e014fda991839bcb7c00d5c1.jpeg"
+            ],
+            
+            // --- Shop ---
+            deji: [
+                "https://images.unsplash.com/photo-1519567241046-7f570eee3ce9?q=80&w=800&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1556740758-90de374c12ad?q=80&w=800&auto=format&fit=crop"
+            ],
+            xinjiekou: [
+                "https://images.unsplash.com/photo-1444723121867-2692111d0a22?q=80&w=800&auto=format&fit=crop"
+            ],
+            aqua: [
+                "https://images.unsplash.com/photo-1555529733-0e670560f7e1?q=80&w=800&auto=format&fit=crop"
+            ],
+            
+            // --- Food ---
+            impressions: [
+                "https://d3h1lg3ksw6i6b.cloudfront.net/media/image/2017/10/06/172fc017db8e42f199de6a569ebec1bf_Nanjing+Impressions+1.jpg",
+				"https://qul.imgix.net/13d1c0b3-ad67-4ab5-aab0-1f8326eea375/449742_sld.jpg",
+				"https://x0.ifengimg.com/ucms/2023_37/5495F3E85B4C86C6422C11B9EC2259BC85E823F1_size253_w1267_h950.jpg"
+            ],
+            duck: [
+                "https://image.kemingbaike.com/default/20250804/1080bcf7b13123a16681e8816a771efb.png","https://am.zdmimg.com/202512/21/69476713af3b18173.jpg_e1080.jpg"
+            ],
+            hotpot: [
+				"https://img.meituan.net/msmerchant/f48d3de768ef42a243cb3737ec64fb44590861.jpg",  "https://5b0988e595225.cdn.sohucs.com/q_70,c_zoom,w_640/images/20171216/80b8935f466f4c6abd6b4f14b6e903f8.jpeg"		
+            ]
+        };
+    </script>
+    <!-- ==================================================================================== -->
+
+    <!-- Language Toggle -->
+    <div class="fixed top-4 right-4 z-50 flex items-center bg-white p-2 rounded-full shadow-md border border-gray-200">
+        <span class="text-xs font-bold mr-2 text-gray-500">ES</span>
+        <div class="relative inline-block w-10 h-5 align-middle select-none">
+            <input type="checkbox" id="lang-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-all duration-300 left-0"/>
+            <label for="lang-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+        </div>
+        <span class="text-xs font-bold ml-2 text-gray-500">中</span>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 h-full overflow-y-auto p-4 lg:p-12 pb-32 lg:pb-12 bg-[#fdfbf7]">
+        <header class="text-center mb-10 max-w-6xl mx-auto mt-8 lg:mt-0">
+            <p id="t-date" class="text-red-700 tracking-widest text-sm font-bold uppercase mb-2">9 - 12 de Febrero 2026</p>
+            <h1 id="t-title" class="text-4xl md:text-5xl font-bold mb-4 serif-font text-gray-900">Nanjing Selección</h1>
+            <p id="t-subtitle" class="text-lg text-gray-500 italic serif-font">"Los mejores lugares de la capital histórica"</p>
+            <div class="w-16 h-1 bg-red-700 mx-auto mt-4"></div>
+        </header>
+
+        <div class="max-w-6xl mx-auto space-y-12">
+            <!-- Weather -->
+            <section class="max-w-3xl mx-auto mb-8">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-1 w-full h-40 chart-container">
+                        <canvas id="weatherChart"></canvas>
+                    </div>
+                    <div class="md:w-1/3 text-center md:text-left">
+                        <h3 id="t-weather" class="font-bold serif-font text-lg">El Clima</h3>
+                        <p class="text-xs text-gray-400 mb-2">(Weather Forecast)</p>
+                        <p class="text-sm text-gray-600">
+                            <span id="t-rec-label" class="font-bold text-red-700">Tip:</span> 
+                            <span id="best-day-text">...</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. Explore -->
+            <section>
+                <h2 class="text-2xl font-bold mb-6 serif-font flex items-center border-b pb-2 border-gray-200">
+                    <span class="text-red-700 mr-3">01.</span> 
+                    <span id="t-cat-explore">Explorar</span> 
+                    <span id="t-cat-explore-sub" class="text-xs font-normal text-gray-400 ml-2">(Sightseeing)</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="container-explore"></div>
+            </section>
+
+            <!-- 2. Shop (Text Only) -->
+            <section>
+                <h2 class="text-2xl font-bold mb-6 serif-font flex items-center border-b pb-2 border-gray-200">
+                    <span class="text-red-700 mr-3">02.</span> 
+                    <span id="t-cat-shop">De Compras</span> 
+                    <span id="t-cat-shop-sub" class="text-xs font-normal text-gray-400 ml-2">(Shopping & Relax)</span>
+                </h2>
+                <!-- Adjusted grid for text-only cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="container-shop"></div>
+            </section>
+
+            <!-- 3. Food -->
+            <section>
+                <h2 class="text-2xl font-bold mb-6 serif-font flex items-center border-b pb-2 border-gray-200">
+                    <span class="text-red-700 mr-3">03.</span> 
+                    <span id="t-cat-food">Saborear</span> 
+                    <span id="t-cat-food-sub" class="text-xs font-normal text-gray-400 ml-2">(Gastronomy)</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="container-food"></div>
+            </section>
+            
+            <div class="h-20 lg:h-0"></div>
+        </div>
+    </main>
+
+    <!-- Sidebar -->
+    <aside id="order-panel" class="bg-gray-900 text-white shadow-2xl z-40 flex-none w-full lg:w-80 fixed bottom-0 left-0 right-0 lg:relative lg:h-full flex flex-col panel-transition transform translate-y-[calc(100%-80px)] lg:translate-y-0">
+        <div class="lg:hidden h-12 flex items-center justify-center border-b border-gray-700 cursor-pointer bg-gray-800" onclick="togglePanel()">
+            <div class="w-12 h-1 bg-gray-500 rounded-full"></div>
+            <span id="t-toggle-text" class="absolute right-4 text-xs text-gray-400">Ver Detalles ↑</span>
+        </div>
+
+        <div class="p-6 flex-grow flex flex-col overflow-y-auto h-[60vh] lg:h-auto">
+            <h2 id="t-sidebar-title" class="text-xl font-bold serif-font mb-2 text-yellow-500">Tu Selección</h2>
+            <p id="t-sidebar-summary" class="text-gray-400 text-xs mb-6 border-b border-gray-700 pb-4">Resumen</p>
+
+            <div id="summary-items" class="flex-grow space-y-3 mb-6"></div>
+
+            <div class="mt-auto">
+                <h4 id="t-sidebar-profile" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2 text-center">Perfil del Viaje</h4>
+                <div class="chart-container" style="height: 180px;">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="mt-2 text-center">
+                    <p id="flavor-text" class="text-sm italic text-yellow-100">"..."</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4 bg-red-900 hover:bg-red-800 cursor-pointer text-center transition-colors lg:block flex items-center justify-between" onclick="confirmOrder()">
+            <span id="t-btn-confirm" class="font-bold tracking-widest uppercase text-sm">Confirmar</span>
+            <span id="t-btn-save" class="lg:hidden text-xs text-red-200">Guardar</span>
+        </div>
+    </aside>
+
+    <script>
+        // --- Content Data ---
+        const itemsData = {
+            // EXPLORE
+            'niushou': { category: 'explore', icon: '🏰', scores: { culture: 70, nature: 50, shop: 0, food: 0 } },
+            'zhanyuan': { category: 'explore', icon: '🎋', scores: { culture: 80, nature: 70, shop: 0, food: 0 } },
+            'yuejianglou': { category: 'explore', icon: '🏯', scores: { culture: 70, nature: 60, shop: 0, food: 0 } },
+            'fuzimiao': { category: 'explore', icon: '🏮', scores: { culture: 80, nature: 30, shop: 30, food: 40 } },
+            'zhongshan': { category: 'explore', icon: '⛰️', scores: { culture: 90, nature: 80, shop: 0, food: 0 } },
+            'baoen': { category: 'explore', icon: '🗼', scores: { culture: 60, nature: 0, shop: 0, food: 0 } },
+            'wall': { category: 'explore', icon: '🧱', scores: { culture: 70, nature: 60, shop: 0, food: 0 } },
+            'xuanwu': { category: 'explore', icon: '🌊', scores: { culture: 30, nature: 90, shop: 0, food: 0 } },
+            
+            // SHOP (Text Only)
+            'deji': { category: 'shop', icon: '💎', scores: { culture: 10, nature: 0, shop: 100, food: 30 } },
+            'zifeng': { category: 'shop', icon: '🏙️', scores: { culture: 0, nature: 0, shop: 90, food: 60 } },
+            'aqua': { category: 'shop', icon: '🛍️', scores: { culture: 10, nature: 0, shop: 70, food: 50 } },
+            
+            // FOOD
+            'impressions': { category: 'food', icon: '🥢', scores: { culture: 50, nature: 0, shop: 0, food: 100 } },
+            'duck': { category: 'food', icon: '🦆', scores: { culture: 30, nature: 0, shop: 0, food: 90 } },
+            'hotpot': { category: 'food', icon: '🍲', scores: { culture: 20, nature: 0, shop: 0, food: 90 } }
+        };
+
+        const i18n = {
+            es: {
+                date: "9 - 12 de Febrero 2026",
+                title: "Nanjing Selección",
+                subtitle: "Lo mejor de la capital para ti",
+                weather: "El Clima",
+                rec_label: "Recomendación:",
+                rec_text: "Mejor día para exteriores: Lunes 10",
+                cat_explore: "Explorar",
+                cat_explore_sub: "(Historia y Naturaleza)",
+                cat_shop: "De Compras",
+                cat_shop_sub: "(Shopping & Relax)",
+                cat_food: "Saborear",
+                cat_food_sub: "(Gastronomía Local)",
+                sidebar_title: "Tu Selección",
+                sidebar_summary: "Resumen del Pedido",
+                sidebar_profile: "Perfil del Viaje",
+                sidebar_confirm: "Confirmar Selección",
+                sidebar_save: "Guardar",
+                sidebar_empty: "Selecciona platos del menú...",
+                toggle_more: "Ver Detalles ↑",
+                toggle_less: "Ocultar ↓",
+                confirm_msg: "¡Excelente! Este es tu menú.",
+                flavor: { shop: "Urbano & Chic", nature: "Amante de la Naturaleza", culture: "Profundidad Histórica", food: "Fiesta Gastronómica", balance: "Equilibrado" },
+                items: {
+                    niushou: { name: "Montaña Niushou", desc: "Un palacio budista subterráneo dorado y futurista. Visualmente impactante, te sentirás en una película." },
+                    zhanyuan: { name: "Jardín Zhanyuan", desc: "El 'Primer Jardín de Jinling'. Un jardín clásico de la Dinastía Ming con rocas, agua y pabellones exquisitos." },
+                    yuejianglou: { name: "Torre Yuejiang", desc: "Magnífica torre sobre la Montaña del León. Ofrece las mejores vistas panorámicas del majestuoso río Yangtsé." },
+                    fuzimiao: { name: "Templo de Confucio", desc: "El alma nocturna de Nankín. Paseo en barco tradicional bajo linternas rojas. Mercados antiguos y mucha vida." },
+                    zhongshan: { name: "Mausoleo Sun Yat-sen", desc: "Un sitio grandioso en la montaña. Incluye el 'Palacio Meiling' que parece un collar de esmeraldas desde el cielo." },
+                    baoen: { name: "Templo Grand Baoen", desc: "Estética Cyberpunk. Una torre de vidrio futurista construida sobre ruinas antiguas. Increíble de noche." },
+                    wall: { name: "Muralla Antigua", desc: "La muralla urbana más larga del mundo. Vistas panorámicas del lago y la ciudad moderna." },
+                    xuanwu: { name: "Lago Xuanwu", desc: "Un antiguo jardín imperial convertido en un inmenso lago con 5 islas. Perfecto para el atardecer." },
+                    deji: { name: "Deji Plaza", desc: "Lujo y Arte. Famoso por sus marcas y sus baños de lujo que son una atracción turística en sí mismos." },
+                    zifeng: { name: "Torre Zifeng", desc: "El rascacielos icónico (450m). Disfruta de un té en el InterContinental (piso 78) con vistas panorámicas de la ciudad." },
+                    aqua: { name: "Aqua City", desc: "Centro comercial abierto con fuentes musicales. Ambiente joven y relajado." },
+                    impressions: { name: "Nanjing Impressions", desc: "Cena en una antigua casa de té. Linternas, música en vivo y platillos pequeños para probar todo." },
+                    duck: { name: "Pato Laqueado", desc: "El famoso Pato Pekín (Quanjude). Piel crujiente, salsas dulces y tortillas. Un clásico." },
+                    hotpot: { name: "Hot Pot de Cordero", desc: "Zongcan Hot Pot. Muy auténtico. Carne de cordero fresca en olla de cobre con carbón. Cálido y animado." }
+                }
+            },
+            zh: {
+                date: "2026年2月9日 - 12日",
+                title: "南京精选菜单",
+                subtitle: "为您甄选的2026必去之地",
+                weather: "天气概况",
+                rec_label: "建议：",
+                rec_text: "最佳出行日：2月10日",
+                cat_explore: "探索",
+                cat_explore_sub: "(景点)",
+                cat_shop: "购物",
+                cat_shop_sub: "(休闲)",
+                cat_food: "品味",
+                cat_food_sub: "(美食)",
+                sidebar_title: "您的选择",
+                sidebar_summary: "行程清单",
+                sidebar_profile: "行程风格",
+                sidebar_confirm: "确认行程",
+                sidebar_save: "保存",
+                sidebar_empty: "请点菜...",
+                toggle_more: "查看详情 ↑",
+                toggle_less: "收起 ↓",
+                confirm_msg: "行程已生成！",
+                flavor: { shop: "都市风", nature: "自然风", culture: "人文风", food: "吃货风", balance: "均衡风" },
+                items: {
+                    niushou: { name: "牛首山", desc: "2026人气景点。佛顶宫金碧辉煌，地下宫殿视觉冲击力极强，恍若幻境。" },
+                    zhanyuan: { name: "瞻园", desc: "金陵第一园，明代古典园林。太湖石假山非常精美，也是太平天国历史博物馆。" },
+                    yuejianglou: { name: "阅江楼", desc: "江南四大名楼之一。屹立于狮子山巅，建筑宏伟，可俯瞰长江全景。" },
+                    fuzimiao: { name: "夫子庙秦淮风光带", desc: "夜景一绝。乘画舫游秦淮河，看两岸灯火，感受金陵繁华。" },
+                    zhongshan: { name: "钟山风景区 (中山陵)", desc: "包含中山陵与美齡宫。美齡宫梧桐项链是极致的浪漫，建筑中西合璧。" },
+                    baoen: { name: "大报恩寺遗址", desc: "琉璃塔夜景极具赛博朋克感，古今碰撞的视觉盛宴。" },
+                    wall: { name: "明城墙 (台城)", desc: "世界最长古城墙。左手玄武湖，右手摩天大楼，古今交融的最佳视角。" },
+                    xuanwu: { name: "玄武湖", desc: "五洲相连的皇家园林湖泊。日落时分景色最美，是体验南京慢生活的首选。" },
+                    deji: { name: "德基广场", desc: "高端奢华。不仅好逛，其豪华卫生间和艺术展本身就是网红打卡点。" },
+                    zifeng: { name: "紫峰大厦", desc: "南京的地标建筑（450米）。推荐去78楼的洲际酒店喝下午茶，拥有俯瞰全城的上帝视角。" },
+                    aqua: { name: "水游城", desc: "夫子庙旁的开放式商区。有音乐喷泉，氛围轻松，适合年轻人闲逛。" },
+                    impressions: { name: "南京大牌档", desc: "古色古香的茶楼环境。挂满灯笼，有评弹表演，一次尝遍金陵小吃。" },
+                    duck: { name: "全聚德烤鸭", desc: "经典的北京烤鸭。皮脆肉嫩，外国人接受度极高，安全又美味的选择。" },
+                    hotpot: { name: "总参涮羊肉", desc: "非常接地气的老字号。炭火铜锅，现切羊肉极其新鲜。冬天吃非常暖和热闹。" }
+                }
+            }
+        };
+
+        // --- Logic ---
+        let currentLang = 'es';
+        let selection = []; 
+        let radarChart;
+        let isPanelOpen = false;
+        let slideIndices = {};
+
+        function init() {
+            initCharts();
+            renderAll();
+            document.getElementById('lang-toggle').addEventListener('change', (e) => {
+                currentLang = e.target.checked ? 'zh' : 'es';
+                renderAll();
+            });
+        }
+
+        function renderAll() {
+            renderText();
+            renderCards();
+            updateSidebar();
+        }
+
+        function renderText() {
+            const t = i18n[currentLang];
+            const ids = ['t-date', 't-title', 't-subtitle', 't-weather', 't-rec-label', 
+                         't-cat-explore', 't-cat-explore-sub', 't-cat-shop', 't-cat-shop-sub', 
+                         't-cat-food', 't-cat-food-sub', 't-sidebar-title', 't-sidebar-summary', 
+                         't-sidebar-profile', 't-btn-confirm', 't-btn-save'];
+            ids.forEach(id => document.getElementById(id).innerText = t[id.replace(/-/g, '_').substring(2)]);
+            document.getElementById('best-day-text').innerText = t.rec_text;
+            document.getElementById('t-toggle-text').innerText = isPanelOpen ? t.toggle_less : t.toggle_more;
+        }
+
+        function renderCards() {
+            // Clear containers
+            document.getElementById('container-explore').innerHTML = '';
+            document.getElementById('container-shop').innerHTML = '';
+            document.getElementById('container-food').innerHTML = '';
+
+            Object.keys(itemsData).forEach(id => {
+                const item = itemsData[id];
+                const text = i18n[currentLang].items[id];
+                const containerId = item.category === 'explore' ? 'container-explore' : (item.category === 'shop' ? 'container-shop' : 'container-food');
+                
+                const isSelected = selection.includes(id);
+                const selectedClass = isSelected ? 'selected-card border-red-700 bg-red-50' : 'border-gray-200 bg-white';
+                const btnState = isSelected ? '<span class="text-white text-xs">✓</span>' : '';
+                const btnBg = isSelected ? 'bg-red-700 border-red-700' : 'border-gray-300';
+
+                let html = '';
+
+                // CONDITION: Shop items = Text Only
+                if (item.category === 'shop') {
+                    html = `
+                        <div class="menu-card rounded-lg p-6 cursor-pointer group h-full relative ${selectedClass}" id="card-${id}" onclick="toggleSelect('${id}')">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-4xl">${item.icon}</span>
+                                <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${btnBg}" id="check-${id}">
+                                    ${btnState}
+                                </div>
+                            </div>
+                            <h3 class="font-bold serif-font text-xl text-gray-800 mb-2 leading-tight">${text.name}</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">${text.desc}</p>
+                        </div>
+                    `;
+                } else {
+                    // Explore & Food = Image Carousel
+                    if (typeof slideIndices[id] === 'undefined') slideIndices[id] = 0;
+                    
+                    const urls = imageConfig[id] || [];
+                    const currentIdx = slideIndices[id];
+                    const currentUrl = urls.length > 0 ? urls[currentIdx] : 'https://placehold.co/600x400/e2e8f0/475569?text=No+Image';
+                    
+                    let controlsHtml = '';
+                    if (urls.length > 1) {
+                        controlsHtml = `
+                            <button class="carousel-btn left" onclick="changeSlide('${id}', -1, event)">&#10094;</button>
+                            <button class="carousel-btn right" onclick="changeSlide('${id}', 1, event)">&#10095;</button>
+                            <div class="carousel-dots">
+                                ${urls.map((_, idx) => `<div class="dot ${idx === currentIdx ? 'active' : ''}"></div>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    html = `
+                        <div class="menu-card rounded-lg overflow-hidden group h-full ${selectedClass}" id="card-${id}" onclick="toggleSelect('${id}')">
+                            <div class="card-image-container group/img">
+                                <img src="${currentUrl}" class="card-image" id="img-${id}">
+                                ${controlsHtml}
+                                <div class="absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors z-20 ${btnBg}" id="check-${id}">
+                                    ${btnState}
+                                </div>
+                            </div>
+                            <div class="p-5 flex flex-col flex-grow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="font-bold serif-font text-lg text-gray-800 leading-tight">${text.name}</h3>
+                                    <span class="text-xl">${item.icon}</span>
+                                </div>
+                                <p class="text-gray-600 text-xs leading-relaxed flex-grow">${text.desc}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById(containerId).innerHTML += html;
+            });
+        }
+
+        function changeSlide(id, direction, event) {
+            event.stopPropagation();
+            const urls = imageConfig[id] || [];
+            if (urls.length <= 1) return;
+
+            let newIdx = slideIndices[id] + direction;
+            if (newIdx < 0) newIdx = urls.length - 1;
+            if (newIdx >= urls.length) newIdx = 0;
+            
+            slideIndices[id] = newIdx;
+            
+            const imgEl = document.getElementById(`img-${id}`);
+            if (imgEl) imgEl.src = urls[newIdx];
+            
+            const card = document.getElementById(`card-${id}`);
+            const dots = card.querySelectorAll('.dot');
+            dots.forEach((d, idx) => {
+                if (idx === newIdx) d.classList.add('active');
+                else d.classList.remove('active');
+            });
+        }
+
+        function toggleSelect(id) {
+            if (selection.includes(id)) {
+                selection = selection.filter(i => i !== id);
+            } else {
+                selection.push(id);
+            }
+            renderCards(); 
+            updateSidebar();
+        }
+
+        function updateSidebar() {
+            const listEl = document.getElementById('summary-items');
+            listEl.innerHTML = '';
+            
+            let scores = { culture: 0, nature: 0, shop: 0, food: 0 };
+            const t = i18n[currentLang];
+
+            if (selection.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-gray-500 italic text-center mt-4">${t.sidebar_empty}</p>`;
+            } else {
+                selection.forEach(id => {
+                    const item = itemsData[id];
+                    const text = t.items[id];
+                    
+                    listEl.innerHTML += `
+                        <div class="flex justify-between items-center bg-gray-800 bg-opacity-50 p-2 rounded">
+                            <span class="font-bold text-sm text-gray-200">${text.name}</span>
+                            <span class="text-red-400 text-xs cursor-pointer px-2" onclick="toggleSelect('${id}')">✕</span>
+                        </div>`;
+                    
+                    Object.keys(scores).forEach(k => scores[k] += item.scores[k]);
+                });
+            }
+
+            const max = Math.max(100, Math.max(...Object.values(scores)));
+            radarChart.options.scales.r.suggestedMax = max > 0 ? max : 100;
+            radarChart.data.datasets[0].data = [scores.culture, scores.nature, scores.shop, scores.food];
+            radarChart.update();
+
+            const ft = document.getElementById('flavor-text');
+            if (selection.length === 0) ft.innerText = "...";
+            else if (scores.shop > scores.culture && scores.shop > scores.food) ft.innerText = `"${t.flavor.shop}"`;
+            else if (scores.nature > scores.culture + 20) ft.innerText = `"${t.flavor.nature}"`;
+            else if (scores.culture > 120) ft.innerText = `"${t.flavor.culture}"`;
+            else if (scores.food > 100) ft.innerText = `"${t.flavor.food}"`;
+            else ft.innerText = `"${t.flavor.balance}"`;
+        }
+
+        function togglePanel() {
+            const panel = document.getElementById('order-panel');
+            const txt = document.getElementById('t-toggle-text');
+            const t = i18n[currentLang];
+            if (isPanelOpen) {
+                panel.classList.add('translate-y-[calc(100%-80px)]'); panel.classList.remove('translate-y-0');
+                txt.innerText = t.toggle_more;
+            } else {
+                panel.classList.remove('translate-y-[calc(100%-80px)]'); panel.classList.add('translate-y-0');
+                txt.innerText = t.toggle_less;
+            }
+            isPanelOpen = !isPanelOpen;
+        }
+
+        function confirmOrder() { alert(i18n[currentLang].confirm_msg); }
+
+        function initCharts() {
+            const ctxW = document.getElementById('weatherChart').getContext('2d');
+            new Chart(ctxW, {
+                type: 'bar',
+                data: {
+                    labels: ['9', '10', '11', '12'],
+                    datasets: [
+                        { type: 'line', label: 'Temp', data: [9, 11, 7, 10], borderColor: '#b91c1c', borderWidth: 2, tension: 0.4, yAxisID: 'y' },
+                        { type: 'bar', label: 'Rain %', data: [10, 0, 45, 10], backgroundColor: '#e5e7eb', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: true, position: 'left', min: 0, max: 15, ticks: {font:{size:10}} },
+                        y1: { display: false, max: 100 },
+                        x: { grid: { display: false }, ticks: {font:{size:10}} }
+                    }
+                }
+            });
+
+            const ctxR = document.getElementById('radarChart').getContext('2d');
+            radarChart = new Chart(ctxR, {
+                type: 'radar',
+                data: {
+                    labels: ['Cult', 'Nat', 'Shop', 'Food'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: 'rgba(255, 200, 50, 0.4)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1,
+                        pointRadius: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#9ca3af', font: { size: 9 } },
+                            ticks: { display: false },
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
