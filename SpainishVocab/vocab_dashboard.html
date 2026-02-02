@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab AI Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1; /* Indigo 500 */
+            --primary-dark: #4f46e5;
+            --bg-body: #f1f5f9; /* Slate 100 */
+            --bg-card: #ffffff;
+            --text-main: #334155; /* Slate 700 */
+            --text-sub: #64748b; /* Slate 500 */
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body { 
+            background-color: var(--bg-body); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-main); 
+            padding-bottom: 60px;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Glass Navbar */
+        .glass-nav { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(16px); 
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            position: sticky; top: 0; z-index: 1000; 
+            padding: 1rem 0;
+        }
+        
+        .brand-logo {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            color: white; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Modern Cards */
+        .dashboard-card { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
+            overflow: hidden; 
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        
+        .card-header-clean {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .card-title { font-weight: 700; font-size: 1rem; letter-spacing: -0.025em; margin: 0; color: #1e293b; }
+
+        /* Stat Grid */
+        .stat-grid-row { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border-color); }
+        .stat-cell { padding: 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .stat-cell:nth-child(even) { border-right: none; }
+        .stat-cell:last-child { border-bottom: none; }
+        .stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; color: #1e293b; }
+        .stat-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-sub); margin-top: 4px; letter-spacing: 0.05em; }
+
+        /* Worker Toggle Button */
+        .worker-pill {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 16px; border-radius: 50px;
+            font-weight: 600; font-size: 0.9rem;
+            border: 1px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .worker-pill.paused { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .worker-pill.running { background: #dcfce7; color: #14532d; border-color: #bbf7d0; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1); }
+        .worker-pill:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        .running .status-dot { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); animation: pulse-green 2s infinite; }
+        
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* Terminal Window */
+        .terminal-window {
+            background: #0f172a; 
+            border-radius: 16px;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex; flex-direction: column;
+            height: 520px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .terminal-header {
+            padding: 12px 16px; background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .window-controls { position: absolute; left: 16px; display: flex; gap: 6px; }
+        .win-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .log-line { padding: 4px 0; font-size: 0.85rem; border-bottom: 1px dashed #1e293b; }
+        .log-time { color: #64748b; margin-right: 10px; }
+
+        /* Progress Bars */
+        .custom-progress { height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .custom-bar { border-radius: 10px; transition: width 0.6s ease; }
+
+        /* Chips */
+        .chip-label { 
+            padding: 6px 14px; border-radius: 20px; 
+            background: #f8fafc; color: var(--text-main); border: 1px solid #e2e8f0; 
+            font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; 
+        }
+        .filter-checkbox:checked + .chip-label { 
+            background: var(--primary); color: white; border-color: var(--primary); 
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+
+        /* --- UPDATED SLOT STYLES (SMALLER) --- */
+        .slot-grid { 
+            display: grid; 
+            /* Changed from 70px to 50px */
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); 
+            gap: 8px; 
+            padding: 1.5rem; 
+        }
+        .slot-item {
+            aspect-ratio: 1; 
+            background: white; 
+            border: 1px dashed #cbd5e1; /* Thinner border */
+            border-radius: 12px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; color: #94a3b8;
+        }
+        .slot-item:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .slot-item.filled { 
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe); 
+            border: 1px solid #818cf8; color: var(--primary-dark); 
+        }
+        .slot-number { font-size: 1rem; font-weight: 700; line-height: 1; }
+        .slot-badge { 
+            font-size: 0.65rem; padding: 1px 5px; border-radius: 6px; 
+            margin-top: 2px; font-weight: 600; background: rgba(255,255,255,0.6);
+        }
+
+        /* Tab Nav */
+        .nav-pills-custom { background: white; padding: 6px; border-radius: 50px; display: inline-flex; border: 1px solid var(--border-color); }
+        .nav-pills-custom .nav-link { 
+            border-radius: 30px; padding: 8px 24px; color: var(--text-sub); font-weight: 500;
+        }
+        .nav-pills-custom .nav-link.active { 
+            background: var(--primary); color: white; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar glass-nav mb-5">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <div class="brand-logo"><i class="bi bi-cpu-fill"></i></div>
+                <div>
+                    <div class="fw-bold" style="color: #0f172a; letter-spacing: -0.5px;">Vocab AI Hub</div>
+                    <div class="text-muted" style="font-size: 0.75rem; font-weight: 500;">High-Performance Worker</div>
+                </div>
+            </a>
+            
+            <button id="workerToggle" class="worker-pill paused" onclick="toggleWorker()">
+                <div class="status-dot"></div>
+                <span id="workerText">System Paused</span>
+                <div id="loadingSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none; width: 12px; height: 12px;"></div>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-center mb-5">
+            <ul class="nav nav-pills nav-pills-custom" id="myTab" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#monitor">Live Monitor</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#export" onclick="loadSlots()">Data Export</button></li>
+            </ul>
+        </div>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="monitor">
+                <div class="row g-4">
+                    <div class="col-lg-4 d-flex flex-column gap-4">
+                        
+                        <div class="dashboard-card">
+                            <div class="card-header-clean">
+                                <h6 class="card-title text-uppercase text-muted small">Pipeline Stats</h6>
+                                <span class="badge bg-slate-100 text-dark border" id="stat-total" style="background:#f1f5f9; color:#475569">Total: 0</span>
+                            </div>
+                            
+                            <div class="stat-grid-row">
+                                <div class="stat-cell">
+                                    <div class="stat-value text-primary" id="stat-processed">0</div>
+                                    <div class="stat-label">Processed</div>
+                                </div>
+                                <div class="stat-cell">
+                                    <div class="stat-value text-success" id="count-keep">0</div>
+                                    <div class="stat-label">Valid Words</div>
+                                </div>
+                            </div>
+                            <div class="stat-grid-row">
+                                <div class="stat-cell">
+                                    <div class="stat-value text-danger" id="stat-errors">0</div>
+                                    <div class="stat-label">API Errors</div>
+                                </div>
+                                <div class="stat-cell">
+                                    <div class="stat-value text-muted" id="count-discard">0</div>
+                                    <div class="stat-label">Discarded</div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-light">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="small fw-bold text-muted">Classification Progress</span>
+                                    <span class="small fw-bold text-primary" id="classify-percent-text">0%</span>
+                                </div>
+                                <div class="custom-progress">
+                                    <div id="progress-bar" class="custom-bar bg-primary" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 border-top d-flex gap-2">
+                                <button class="btn btn-sm btn-light flex-fill text-muted" onclick="resetDiscards()">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset Discards
+                                </button>
+                                <button class="btn btn-sm btn-light flex-fill text-warning" onclick="retryErrors()">
+                                    <i class="bi bi-lightning-fill"></i> Retry Errors
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header-clean bg-warning bg-opacity-10">
+                                <h6 class="card-title text-warning-emphasis">Translation Queue</h6>
+                                <span class="badge bg-warning text-dark rounded-pill" id="trans-badge">0%</span>
+                            </div>
+                            <div class="p-4">
+                                <div class="d-flex justify-content-between align-items-end mb-2">
+                                    <div>
+                                        <div class="stat-value text-dark" id="count-trans">0</div>
+                                        <div class="stat-label">Translated</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-muted">Target</div>
+                                        <div class="fw-bold text-dark" id="count-keep-ref">0</div>
+                                    </div>
+                                </div>
+                                <div class="custom-progress mb-4">
+                                    <div id="trans-bar" class="custom-bar bg-warning" style="width: 0%"></div>
+                                </div>
+                                <button class="btn btn-outline-warning w-100 btn-sm fw-bold" onclick="triggerTranslate()">
+                                    <i class="bi bi-play-fill"></i> Force Retry / Resume
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-dark border-0">
+                            <div class="p-4">
+                                <label class="text-white-50 small fw-bold text-uppercase mb-2">Active Model</label>
+                                <div class="d-flex gap-2">
+                                    <select class="form-select form-select-sm bg-secondary text-white border-0" id="modelSelect"></select>
+                                    <button class="btn btn-sm btn-primary" onclick="updateModel()">Set</button>
+                                </div>
+                                <div class="mt-2 text-white-50 small">Current: <span class="text-white fw-bold" id="currentModelBadge">...</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-8">
+                        <div class="terminal-window">
+                            <div class="terminal-header">
+                                <div class="window-controls">
+                                    <div class="win-dot bg-danger"></div>
+                                    <div class="win-dot bg-warning"></div>
+                                    <div class="win-dot bg-success"></div>
+                                </div>
+                                <span class="text-muted small">worker_process.log</span>
+                            </div>
+                            <div id="log-container" class="p-3 overflow-auto" style="flex:1;">
+                                <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                                    <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                                    <span class="small">Waiting for worker signal...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="export">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="dashboard-card h-100 p-4">
+                            <h5 class="fw-bold mb-4">Export Settings</h5>
+                            
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">FILTER MODE</label>
+                                <select class="form-select" id="filterType" onchange="renderFilterOptions()">
+                                    <option value="tag">By Tags</option>
+                                    <option value="level">By CEFR Level</option>
+                                    <option value="all_kept">Everything (Kept)</option>
+                                </select>
+                            </div>
+
+                            <div id="filterOptionsContainer" class="mb-4"></div>
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-light border" onclick="previewExport()">
+                                    Match Count: <span id="previewCount" class="fw-bold text-primary">-</span>
+                                </button>
+                                
+                                <div class="input-group mt-2">
+                                    <span class="input-group-text bg-white border-end-0">Slot</span>
+                                    <input type="number" class="form-control border-start-0 text-center" id="slotId" placeholder="0-99">
+                                    <button class="btn btn-primary" onclick="doExport()">Save</button>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <button class="btn btn-sm btn-outline-danger w-100" onclick="deleteSlotData()">Clear Selected Slot</button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-8">
+                        <div class="dashboard-card h-100 p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold m-0">Storage Slots</h6>
+                                <button class="btn btn-sm btn-light" onclick="loadSlots()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                            </div>
+                            <div class="slot-grid" id="slotGrid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const ALL_TAGS = ["office", "hr", "finance", "legal", "it", "ops", "marketing", "bd", "procurement", "qhse", "pm", "bidding", "supervision", "water", "transport", "rail", "roads", "airport", "ports", "energy", "urban", "geo", "environment", "comm", "abstract", "society"];
+        const ALL_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
+        // Filters
+        function renderFilterOptions() {
+            const type = document.getElementById('filterType').value;
+            const container = document.getElementById('filterOptionsContainer');
+            container.innerHTML = '';
+            if (type === 'all_kept') return;
+
+            const group = document.createElement('div');
+            group.className = 'd-flex flex-wrap gap-2';
+            
+            const items = type === 'tag' ? ALL_TAGS : ALL_LEVELS;
+            items.forEach(item => {
+                const id = `f-${item}`;
+                group.innerHTML += `
+                    <input type="checkbox" class="filter-checkbox d-none" id="${id}" value="${item}">
+                    <label class="chip-label" for="${id}">${item}</label>
+                `;
+            });
+            container.appendChild(group);
+        }
+        renderFilterOptions();
+        function getChecked() { return Array.from(document.querySelectorAll('.filter-checkbox:checked')).map(cb => cb.value); }
+
+        // Worker Logic
+        let currentWorkerStatus = 'paused';
+
+        function syncWorkerStatus() {
+            fetch('/api/worker_status')
+                .then(r => r.json())
+                .then(data => {
+                    const btn = document.getElementById('workerToggle');
+                    const text = document.getElementById('workerText');
+                    const spinner = document.getElementById('loadingSpinner');
+                    
+                    currentWorkerStatus = data.status;
+                    spinner.style.display = 'none';
+
+                    if (data.status === 'running') {
+                        btn.className = 'worker-pill running';
+                        text.innerText = 'Worker Running';
+                    } else {
+                        btn.className = 'worker-pill paused';
+                        text.innerText = 'Worker Paused';
+                    }
+                });
+        }
+
+        function toggleWorker() {
+            const btn = document.getElementById('workerToggle');
+            const spinner = document.getElementById('loadingSpinner');
+            const newStatus = currentWorkerStatus === 'running' ? 'paused' : 'running';
+            
+            spinner.style.display = 'block'; // Show loading
+            
+            fetch('/api/worker_status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status: newStatus})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) syncWorkerStatus();
+            });
+        }
+
+        // Stats
+        function updateStats() {
+            fetch('/api/stats').then(r => r.json()).then(data => {
+                if(data.error) return;
+                document.getElementById('stat-total').innerText = 'Total: ' + data.total;
+                document.getElementById('stat-processed').innerText = data.processed;
+                document.getElementById('stat-errors').innerText = data.errors; 
+                document.getElementById('count-keep').innerText = data.kept;
+                document.getElementById('count-keep-ref').innerText = data.kept;
+                document.getElementById('count-discard').innerText = data.discarded;
+                document.getElementById('count-trans').innerText = data.translated;
+
+                document.getElementById('progress-bar').style.width = data.percent_classify + '%';
+                document.getElementById('classify-percent-text').innerText = data.percent_classify + '%';
+                
+                document.getElementById('trans-bar').style.width = data.percent_translate + '%';
+                document.getElementById('trans-badge').innerText = data.percent_translate + '%';
+
+                if (data.recent_logs && data.recent_logs.length > 0) {
+                    const logContainer = document.getElementById('log-container');
+                    logContainer.innerHTML = data.recent_logs.map(log => {
+                        let statusColor = '#94a3b8'; 
+                        let statusText = log.status.toUpperCase();
+                        
+                        if (log.processed_flag === 2) {
+                            statusColor = '#ef4444'; statusText = 'ERROR';
+                        } else if (log.status === 'keep') {
+                            statusColor = '#10b981';
+                        } else if (log.status === 'discard') {
+                            statusColor = '#64748b';
+                        }
+
+                        const timeStr = log.updated_at.split(' ')[1];
+                        return `
+                            <div class="log-line">
+                                <span class="log-time">${timeStr}</span>
+                                <span style="color:${statusColor}; font-weight:bold; margin-right:10px;">${statusText}</span>
+                                <span>${log.word}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            });
+        }
+
+        // Init
+        syncWorkerStatus();
+        setInterval(updateStats, 1000); 
+
+        // Actions
+        function resetDiscards() {
+            if(!confirm("Reset ALL 'discarded' words to 'pending'?")) return;
+            fetch('/api/reset_discards', {method:'POST'}).then(r=>r.json()).then(d=>alert(d.message));
+        }
+        function retryErrors() {
+            fetch('/api/retry_errors', {method:'POST'}).then(r=>r.json()).then(d=>alert(d.message));
+        }
+        function triggerTranslate() {
+            if(!confirm("Reset translation flags?")) return;
+            fetch('/api/trigger_translate', {method:'POST'}).then(r=>r.json()).then(d=>alert(d.message));
+        }
+
+        // Model
+        function loadModelConfig() {
+            fetch('/api/config').then(r => r.json()).then(data => {
+                const select = document.getElementById('modelSelect');
+                document.getElementById('currentModelBadge').innerText = data.current_model;
+                select.innerHTML = '';
+                data.available_models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m; opt.text = m;
+                    if(m === data.current_model) opt.selected = true;
+                    select.appendChild(opt);
+                });
+                select.innerHTML += '<option>-- Custom --</option>';
+            });
+        }
+        loadModelConfig();
+        function updateModel() {
+            let val = document.getElementById('modelSelect').value;
+            if (val.includes("Custom")) val = prompt("Model Name:");
+            if (val) fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({model_name:val})}).then(loadModelConfig);
+        }
+
+        // Slots
+        function loadSlots() {
+            fetch('/api/slots').then(r=>r.json()).then(data => {
+                const grid = document.getElementById('slotGrid'); grid.innerHTML = '';
+                for(let i=0; i<100; i++) {
+                    const d = data[i];
+                    // Updated compact slot HTML
+                    grid.innerHTML += `<div class="slot-item ${d?'filled':''}" onclick="document.getElementById('slotId').value=${i}">
+                        <span class="slot-number">${i.toString().padStart(2,'0')}</span>
+                        ${d?`<span class="slot-badge">${d.count}</span>`:''}
+                    </div>`;
+                }
+            });
+        }
+        function previewExport() {
+            const type = document.getElementById('filterType').value;
+            const values = getChecked();
+            fetch('/api/preview_export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({filter_type:type, filter_values:values})})
+            .then(r=>r.json()).then(d => document.getElementById('previewCount').innerText = d.count);
+        }
+        function doExport() {
+            const slot = document.getElementById('slotId').value;
+            if(!slot) return alert("Slot ID required");
+            const type = document.getElementById('filterType').value;
+            const values = getChecked();
+            fetch('/api/do_export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({slot_id:slot, filter_type:type, filter_values:values})})
+            .then(r=>r.json()).then(d => {
+                if(d.error) alert(d.error); else window.location.href=`/api/download/${d.filename}`;
+            });
+        }
+        function deleteSlotData() {
+            const slot = document.getElementById('slotId').value;
+            if(slot && confirm("Clear Slot " + slot + "?")) fetch('/api/clear_slot', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({slot_id:slot})}).then(loadSlots);
+        }
+    </script>
+</body>
+</html>
